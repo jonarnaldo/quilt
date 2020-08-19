@@ -15,6 +15,7 @@
     {"path": "../react-effect"},
     {"path": "../react-graphql"},
     {"path": "../react-html"},
-    {"path": "../react-hooks"}
+    {"path": "../react-hooks"},
+    {"path": "../with-env"}
   ]
 }
