@@ -3,6 +3,12 @@ module Quilt
   class ReactRenderableTest < Minitest::Test
     include Quilt::ReactRenderable
 
+    def setup
+      @request_id = '06a2f67e-b080-446f-bffa-7851ddad3a45'
+      @request = ActionDispatch::TestRequest.create
+      @request.request_id = @request_id
+    end
+
     def test_render_react_calls_reverse_proxy_with_server_uri_and_csrf
       Rails.env.stubs(:test?).returns(false)
       url = "#{Quilt.configuration.react_server_protocol}://#{Quilt.configuration.react_server_host}"
@@ -11,7 +17,7 @@ module Quilt
         render_react,
         reverse_proxy(
           url,
-          headers: { 'X-Quilt-Data': {}.to_json }
+          headers: { 'X-Request-ID': @request_id, 'X-Quilt-Data': {}.to_json }
         )
       )
     end
@@ -23,6 +29,7 @@ module Quilt
       render_result = render_react(headers: { 'x-custom-header': 'test' })
       headers = {
         'x-custom-header': 'test',
+        'X-Request-ID': @request_id,
         'X-Quilt-Data': {}.to_json,
       }
       proxy_result = reverse_proxy(url, headers: headers)
@@ -34,7 +41,7 @@ module Quilt
       Rails.env.stubs(:test?).returns(false)
       url = "#{Quilt.configuration.react_server_protocol}://#{Quilt.configuration.react_server_host}"
 
-      headers = { 'X-Quilt-Data': { 'X-Foo': 'bar' }.to_json }
+      headers = { 'X-Request-ID': @request_id, 'X-Quilt-Data': { 'X-Foo': 'bar' }.to_json }
       assert_equal(
         render_react(data: { 'X-Foo': 'bar' }),
         reverse_proxy(url, headers: headers)
@@ -59,5 +66,8 @@ module Quilt
     def form_authenticity_token
       'foo'
     end
+
+    # Stubbing request that exist in a controller
+    attr_reader :request
   end
 end
